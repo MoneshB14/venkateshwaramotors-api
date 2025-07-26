@@ -6,5 +6,6 @@ public class EmailTemplates {
     public static final String SERVICE_BOOKING_REMINDER = "SERVICE_BOOKING_REMINDER";
     public static final String WELCOME_EMAIL = "WELCOME_EMAIL";
     public static final String GENERAL_NOTIFICATION = "GENERAL_NOTIFICATION";
+    public static final String OTP_EMAIL = "LOGIN_OTP";
 
 }

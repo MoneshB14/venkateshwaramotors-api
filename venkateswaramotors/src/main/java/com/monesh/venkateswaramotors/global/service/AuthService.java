@@ -14,7 +14,7 @@ import java.util.Optional;
 public class AuthService {
 
     private static final String AUTH_COOKIE_NAME = "vm_auth_token";
-    private static final String VALID_AUTH_TOKEN = "vm_valid_token_2024"; // In production, use proper JWT tokens
+    private static final String VALID_AUTH_TOKEN = "vm_authenticated_user"; // In production, use proper JWT tokens
 
     /**
      * Authenticate request using cookie-based authentication

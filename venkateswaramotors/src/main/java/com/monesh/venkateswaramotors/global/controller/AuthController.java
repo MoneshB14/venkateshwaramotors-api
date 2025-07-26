@@ -11,14 +11,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/global/auth")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
 public class AuthController {
 
     private static final String AUTH_COOKIE_NAME = "vm_auth_token";
-    private static final String VALID_AUTH_TOKEN = "vm_valid_token_2024";
+    private static final String VALID_AUTH_TOKEN = "vm_authenticated_user";
 
     /**
      * Login endpoint to set authentication cookie
