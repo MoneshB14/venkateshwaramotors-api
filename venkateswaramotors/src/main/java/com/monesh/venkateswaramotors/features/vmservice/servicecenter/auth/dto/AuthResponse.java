@@ -1,4 +1,4 @@
-package com.monesh.venkateswaramotors.features.vmservice.servicecenter.dto;
+package com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

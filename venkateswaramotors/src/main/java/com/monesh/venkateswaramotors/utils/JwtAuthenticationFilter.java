@@ -1,6 +1,6 @@
 package com.monesh.venkateswaramotors.utils;
 
-import com.monesh.venkateswaramotors.features.vmservice.servicecenter.service.UserService;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -52,20 +52,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        if (jwt != null) {
-            userEmail = jwtService.extractUsername(jwt);
+        // Only process JWT if it's not null and not empty
+        if (jwt != null && !jwt.trim().isEmpty()) {
+            try {
+                userEmail = jwtService.extractUsername(jwt);
 
-            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = this.userService.loadUserByUsername(userEmail);
-                if (jwtService.validateToken(jwt, userDetails)) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities());
-                    authToken.setDetails(
-                            new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = this.userService.loadUserByUsername(userEmail);
+                    if (jwtService.validateToken(jwt, userDetails)) {
+                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities());
+                        authToken.setDetails(
+                                new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                    }
                 }
+            } catch (Exception e) {
+                // Log the error but continue with the filter chain
+                logger.warn("Error processing JWT token: " + e.getMessage());
             }
         }
 

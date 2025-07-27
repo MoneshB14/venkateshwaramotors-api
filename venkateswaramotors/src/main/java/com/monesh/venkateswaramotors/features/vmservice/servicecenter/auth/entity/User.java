@@ -1,4 +1,4 @@
-package com.monesh.venkateswaramotors.features.vmservice.servicecenter.entity;
+package com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

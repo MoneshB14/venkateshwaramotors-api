@@ -20,19 +20,31 @@ public class JwtService {
     private static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60; // 5 hours
 
     public String extractUsername(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            return null;
+        }
         return extractClaim(token, Claims::getSubject);
     }
 
     public Date extractExpiration(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            return null;
+        }
         return extractClaim(token, Claims::getExpiration);
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        if (token == null || token.trim().isEmpty()) {
+            return null;
+        }
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
     private Claims extractAllClaims(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            throw new IllegalArgumentException("Token cannot be null or empty");
+        }
         return Jwts.parserBuilder()
                 .setSigningKey(getSignKey())
                 .build()
@@ -41,12 +53,23 @@ public class JwtService {
     }
 
     private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        if (token == null || token.trim().isEmpty()) {
+            return true;
+        }
+        Date expiration = extractExpiration(token);
+        return expiration != null && expiration.before(new Date());
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        if (token == null || token.trim().isEmpty() || userDetails == null) {
+            return false;
+        }
+        try {
+            final String username = extractUsername(token);
+            return (username != null && username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public String generateToken(String userName) {

@@ -1,4 +1,4 @@
-package com.monesh.venkateswaramotors.features.vmservice.servicecenter.dto;
+package com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

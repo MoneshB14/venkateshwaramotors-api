@@ -14,7 +14,6 @@ import java.util.Map;
 @RequestMapping("/global/auth")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 public class AuthController {
 
     private static final String AUTH_COOKIE_NAME = "vm_auth_token";

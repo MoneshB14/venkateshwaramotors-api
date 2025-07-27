@@ -15,7 +15,6 @@ import jakarta.validation.Valid;
 @RequestMapping("/website-booking")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 public class WebsiteBookingController {
 
     private final WebsiteBookingService websiteBookingService;

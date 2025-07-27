@@ -30,6 +30,7 @@ public class OtpService {
             log.info("Sending OTP to email: {}", email);
             
             String otp = generateOTP();
+            log.info("OTP: {}", otp);
             redisService.setOTP(email, otp);
             
             // Create email template data

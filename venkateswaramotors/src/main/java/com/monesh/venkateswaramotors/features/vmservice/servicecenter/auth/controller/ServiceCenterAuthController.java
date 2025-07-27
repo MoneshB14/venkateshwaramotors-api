@@ -1,21 +1,23 @@
-package com.monesh.venkateswaramotors.features.vmservice.servicecenter.controller;
+package com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.controller;
 
-import com.monesh.venkateswaramotors.features.vmservice.servicecenter.dto.AuthResponse;
-import com.monesh.venkateswaramotors.features.vmservice.servicecenter.dto.LoginRequest;
-import com.monesh.venkateswaramotors.features.vmservice.servicecenter.dto.OtpVerificationRequest;
-import com.monesh.venkateswaramotors.features.vmservice.servicecenter.dto.SignupRequest;
-import com.monesh.venkateswaramotors.features.vmservice.servicecenter.entity.User;
-import com.monesh.venkateswaramotors.features.vmservice.servicecenter.service.UserService;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.dto.AuthResponse;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.dto.LoginRequest;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.dto.OtpVerificationRequest;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.dto.SignupRequest;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.entity.User;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.service.UserService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/service-center/auth")
-@CrossOrigin(origins = "*")
 public class ServiceCenterAuthController {
 
     @Autowired
@@ -40,10 +42,9 @@ public class ServiceCenterAuthController {
         try {
             boolean userExists = userService.login(loginRequest.getEmail());
             if (userExists) {
-                // Send OTP for login verification
                 boolean otpSent = userService.sendLoginOTP(loginRequest.getEmail());
                 if (otpSent) {
-                    return ResponseEntity.ok(new AuthResponse("OTP sent to your email", false));
+                    return ResponseEntity.ok(new AuthResponse("OTP sent to your email", true));
                 } else {
                     return ResponseEntity.badRequest().body(new AuthResponse("Failed to send OTP", false));
                 }
@@ -61,17 +62,24 @@ public class ServiceCenterAuthController {
         try {
             boolean isValidOTP = userService.verifyLoginOTP(otpRequest.getEmail(), otpRequest.getOtp());
             if (isValidOTP) {
-                // Get user details
                 User user = userService.getUserByEmail(otpRequest.getEmail()).orElse(null);
 
                 if (user != null) {
-                    // Set authentication cookie (no JWT token needed)
+                    // Set authentication token cookie
                     Cookie authCookie = new Cookie("vm_auth_token", "vm_authenticated_user");
                     authCookie.setHttpOnly(true);
-                    authCookie.setSecure(false); // Set to true in production with HTTPS
+                    authCookie.setSecure(false);
                     authCookie.setPath("/");
-                    authCookie.setMaxAge(24 * 60 * 60); // 24 hours
+                    authCookie.setMaxAge(24 * 60 * 60);
                     response.addCookie(authCookie);
+
+                    // Set user email cookie for authentication
+                    Cookie emailCookie = new Cookie("vm_user_email", user.getEmail());
+                    emailCookie.setHttpOnly(true);
+                    emailCookie.setSecure(false);
+                    emailCookie.setPath("/");
+                    emailCookie.setMaxAge(24 * 60 * 60);
+                    response.addCookie(emailCookie);
 
                     return ResponseEntity.ok(new AuthResponse(
                             "Login successful",
@@ -106,14 +114,47 @@ public class ServiceCenterAuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<AuthResponse> logout(HttpServletResponse response) {
-        // Clear authentication cookie
+        // Clear authentication token cookie
         Cookie authCookie = new Cookie("vm_auth_token", null);
         authCookie.setHttpOnly(true);
         authCookie.setSecure(false);
         authCookie.setPath("/");
-        authCookie.setMaxAge(0); // Delete cookie
+        authCookie.setMaxAge(0);
         response.addCookie(authCookie);
 
+        // Clear user email cookie
+        Cookie emailCookie = new Cookie("vm_user_email", null);
+        emailCookie.setHttpOnly(true);
+        emailCookie.setSecure(false);
+        emailCookie.setPath("/");
+        emailCookie.setMaxAge(0);
+        response.addCookie(emailCookie);
+
         return ResponseEntity.ok(new AuthResponse("Logged out successfully", true));
+    }
+
+    @GetMapping("/status")
+    public ResponseEntity<AuthResponse> getAuthStatus(HttpServletRequest request) {
+        try {
+            Cookie[] cookies = request.getCookies();
+
+            // Use service method to check authentication status
+            Optional<User> userOptional = userService.checkAuthenticationStatus(cookies);
+
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                return ResponseEntity.ok(new AuthResponse(
+                        "User is authenticated",
+                        true,
+                        user.getEmail(),
+                        user.getFirstName(),
+                        user.getLastName()));
+            } else {
+                return ResponseEntity.ok(new AuthResponse("User is not authenticated", false));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new AuthResponse("Error checking authentication status: " + e.getMessage(), false));
+        }
     }
 }
