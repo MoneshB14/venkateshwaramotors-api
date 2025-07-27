@@ -7,7 +7,7 @@ import java.time.Instant;
 
 @Data
 public class UserResponse {
-    
+
     private String id;
     private String email;
     private String firstName;
@@ -22,7 +22,7 @@ public class UserResponse {
     private boolean accountNonLocked;
     private Instant createdAt;
     private Instant updatedAt;
-    
+
     public static UserResponse fromUser(User user) {
         UserResponse response = new UserResponse();
         response.setId(user.getId());
@@ -41,4 +41,4 @@ public class UserResponse {
         response.setUpdatedAt(user.getUpdatedAt());
         return response;
     }
-} 
+}

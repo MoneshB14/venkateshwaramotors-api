@@ -4,6 +4,7 @@ import com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.entit
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.repository.UserRepository;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.userManagement.dto.CreateUserRequest;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.userManagement.dto.CreateUserResponse;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.userManagement.dto.GenericResponse;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.userManagement.dto.UpdateUserRequest;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.userManagement.dto.UserListResponse;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.userManagement.dto.UserResponse;
@@ -29,19 +30,19 @@ public class UserManagementService {
     public CreateUserResponse createUser(CreateUserRequest request) {
         // Validate email uniqueness
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("User with email " + request.getEmail() + " already exists");
+            return new CreateUserResponse("User with email " + request.getEmail() + " already exists", false);
         }
 
         // Validate phone number uniqueness
         if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
-            throw new RuntimeException("User with phone number " + request.getPhoneNumber() + " already exists");
+            return new CreateUserResponse("User with phone number " + request.getPhoneNumber() + " already exists", false);
         }
 
         // Validate role
         try {
             User.Role.valueOf(request.getRole().toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid role: " + request.getRole() + ". Valid roles are: USER, ADMIN");
+            return new CreateUserResponse("Invalid role: " + request.getRole() + ". Valid roles are: USER, ADMIN", false);
         }
 
         User user = request.toUser();
@@ -68,7 +69,8 @@ public class UserManagementService {
                 User.Role userRole = User.Role.valueOf(role.toUpperCase());
                 userPage = userRepository.findByRole(userRole, pageable);
             } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Invalid role: " + role);
+                // Return empty result for invalid role instead of throwing exception
+                userPage = userRepository.findAll(PageRequest.of(page, size, Sort.by("createdAt").descending()));
             }
         } else {
             // Get all users
@@ -90,32 +92,38 @@ public class UserManagementService {
     /**
      * Get user by ID
      */
-    public UserResponse getUserById(String userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
-        return UserResponse.fromUser(user);
+    public GenericResponse getUserById(String userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return new GenericResponse("User not found with ID: " + userId, false);
+        }
+        return new GenericResponse("User found successfully", true, UserResponse.fromUser(user));
     }
 
     /**
      * Get user by email
      */
-    public UserResponse getUserByEmail(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-        return UserResponse.fromUser(user);
+    public GenericResponse getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            return new GenericResponse("User not found with email: " + email, false);
+        }
+        return new GenericResponse("User found successfully", true, UserResponse.fromUser(user));
     }
 
     /**
      * Update user information
      */
-    public UserResponse updateUser(String userId, UpdateUserRequest request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+    public GenericResponse updateUser(String userId, UpdateUserRequest request) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return new GenericResponse("User not found with ID: " + userId, false);
+        }
 
         // Update fields if provided
         if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
             if (userRepository.existsByEmail(request.getEmail())) {
-                throw new RuntimeException("User with email " + request.getEmail() + " already exists");
+                return new GenericResponse("User with email " + request.getEmail() + " already exists", false);
             }
             user.setEmail(request.getEmail());
         }
@@ -130,7 +138,7 @@ public class UserManagementService {
 
         if (request.getPhoneNumber() != null && !request.getPhoneNumber().equals(user.getPhoneNumber())) {
             if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
-                throw new RuntimeException("User with phone number " + request.getPhoneNumber() + " already exists");
+                return new GenericResponse("User with phone number " + request.getPhoneNumber() + " already exists", false);
             }
             user.setPhoneNumber(request.getPhoneNumber());
         }
@@ -156,7 +164,7 @@ public class UserManagementService {
                 User.Role newRole = User.Role.valueOf(request.getRole().toUpperCase());
                 user.setRole(newRole);
             } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Invalid role: " + request.getRole());
+                return new GenericResponse("Invalid role: " + request.getRole() + ". Valid roles are: USER, ADMIN", false);
             }
         }
 
@@ -170,75 +178,83 @@ public class UserManagementService {
 
         user.onUpdate();
         User updatedUser = userRepository.save(user);
-        return UserResponse.fromUser(updatedUser);
+        return new GenericResponse("User updated successfully", true, UserResponse.fromUser(updatedUser));
     }
 
     /**
      * Delete user
      */
-    public void deleteUser(String userId) {
+    public GenericResponse deleteUser(String userId) {
         if (!userRepository.existsById(userId)) {
-            throw new RuntimeException("User not found with ID: " + userId);
+            return new GenericResponse("User not found with ID: " + userId, false);
         }
         userRepository.deleteById(userId);
+        return new GenericResponse("User deleted successfully", true);
     }
 
     /**
      * Enable/Disable user account
      */
-    public UserResponse toggleUserStatus(String userId, boolean enabled) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+    public GenericResponse toggleUserStatus(String userId, boolean enabled) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return new GenericResponse("User not found with ID: " + userId, false);
+        }
 
         user.setEnabled(enabled);
         user.onUpdate();
         User updatedUser = userRepository.save(user);
-        return UserResponse.fromUser(updatedUser);
+        return new GenericResponse("User status updated successfully", true, UserResponse.fromUser(updatedUser));
     }
 
     /**
      * Lock/Unlock user account
      */
-    public UserResponse toggleUserLock(String userId, boolean locked) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+    public GenericResponse toggleUserLock(String userId, boolean locked) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return new GenericResponse("User not found with ID: " + userId, false);
+        }
 
         user.setAccountNonLocked(!locked);
         user.onUpdate();
         User updatedUser = userRepository.save(user);
-        return UserResponse.fromUser(updatedUser);
+        return new GenericResponse("User lock status updated successfully", true, UserResponse.fromUser(updatedUser));
     }
 
     /**
      * Change user role
      */
-    public UserResponse changeUserRole(String userId, String newRole) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+    public GenericResponse changeUserRole(String userId, String newRole) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return new GenericResponse("User not found with ID: " + userId, false);
+        }
 
         try {
             User.Role role = User.Role.valueOf(newRole.toUpperCase());
             user.setRole(role);
             user.onUpdate();
             User updatedUser = userRepository.save(user);
-            return UserResponse.fromUser(updatedUser);
+            return new GenericResponse("User role updated successfully", true, UserResponse.fromUser(updatedUser));
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid role: " + newRole + ". Valid roles are: USER, ADMIN");
+            return new GenericResponse("Invalid role: " + newRole + ". Valid roles are: USER, ADMIN", false);
         }
     }
 
     /**
      * Get users by role
      */
-    public List<UserResponse> getUsersByRole(String role) {
+    public GenericResponse getUsersByRole(String role) {
         try {
             User.Role userRole = User.Role.valueOf(role.toUpperCase());
             List<User> users = userRepository.findByRole(userRole);
-            return users.stream()
+            List<UserResponse> userResponses = users.stream()
                     .map(UserResponse::fromUser)
                     .collect(Collectors.toList());
+            return new GenericResponse("Users retrieved successfully", true, userResponses);
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid role: " + role);
+            return new GenericResponse("Invalid role: " + role + ". Valid roles are: USER, ADMIN", false);
         }
     }
 

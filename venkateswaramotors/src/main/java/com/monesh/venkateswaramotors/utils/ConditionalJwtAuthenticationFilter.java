@@ -21,16 +21,16 @@ public class ConditionalJwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
-        
+
         String requestURI = request.getRequestURI();
-        
+
         // Skip JWT authentication for user management endpoints
         if (requestURI.startsWith("/service-center/user-management/")) {
             // Skip JWT filter entirely and continue with the filter chain
             filterChain.doFilter(request, response);
             return;
         }
-        
+
         // Apply JWT authentication for other endpoints
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
     }
@@ -40,4 +40,4 @@ public class ConditionalJwtAuthenticationFilter extends OncePerRequestFilter {
         // This filter should always run, but conditionally delegate to JWT filter
         return false;
     }
-} 
+}
