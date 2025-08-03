@@ -4,7 +4,6 @@ import com.monesh.venkateswaramotors.constants.EmailTemplates;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.dto.*;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.entity.Booking;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.repository.BookingRepository;
-import com.monesh.venkateswaramotors.global.service.AuthService;
 import com.monesh.venkateswaramotors.global.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +25,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BookingService {
 
-    private final AuthService authService;
     private final EmailService emailService;
     private final BookingRepository bookingRepository;
 

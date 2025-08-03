@@ -6,7 +6,6 @@ import com.monesh.venkateswaramotors.features.vmservice.servicecenter.userManage
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.userManagement.dto.GenericResponse;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.userManagement.dto.UpdateUserRequest;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.userManagement.dto.UserListResponse;
-import com.monesh.venkateswaramotors.features.vmservice.servicecenter.userManagement.dto.UserResponse;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.userManagement.service.UserManagementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
