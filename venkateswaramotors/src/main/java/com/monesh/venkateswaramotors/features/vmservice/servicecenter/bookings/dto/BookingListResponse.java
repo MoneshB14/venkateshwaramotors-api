@@ -17,6 +17,9 @@ public class BookingListResponse {
     private String message;
     private List<BookingResponse> bookings;
     private int totalBookings;
+    private int todayBookings;
+    private int thisWeek;
+    private int thisMonth;
     private int page;
     private int size;
-} 
+}

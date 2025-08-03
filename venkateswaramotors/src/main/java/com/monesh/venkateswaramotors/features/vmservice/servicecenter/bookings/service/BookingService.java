@@ -13,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -218,6 +220,22 @@ public class BookingService {
                     .message("Bookings retrieved successfully")
                     .bookings(bookingResponses)
                     .totalBookings((int) bookingPage.getTotalElements())
+                    .todayBookings((int) bookingResponses.stream()
+                            .filter(booking -> booking.getBookingDateTime().atZone(ZoneId.systemDefault()).toLocalDate()
+                                    .equals(LocalDate.now()))
+                            .count())
+                    .thisWeek((int) bookingResponses.stream()
+                            .filter(booking -> booking.getBookingDateTime().atZone(ZoneId.systemDefault()).toLocalDate()
+                                    .isAfter(LocalDate.now().minusWeeks(1))
+                                    && booking.getBookingDateTime().atZone(ZoneId.systemDefault()).toLocalDate()
+                                            .isBefore(LocalDate.now()))
+                            .count())
+                    .thisMonth((int) bookingResponses.stream()
+                            .filter(booking -> booking.getBookingDateTime().atZone(ZoneId.systemDefault()).toLocalDate()
+                                    .isAfter(LocalDate.now().minusMonths(1))
+                                    && booking.getBookingDateTime().atZone(ZoneId.systemDefault()).toLocalDate()
+                                            .isBefore(LocalDate.now()))
+                            .count())
                     .page(page)
                     .size(size)
                     .build();
