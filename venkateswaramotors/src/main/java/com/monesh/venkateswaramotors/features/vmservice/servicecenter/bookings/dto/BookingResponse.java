@@ -29,4 +29,5 @@ public class BookingResponse {
     private Instant bookingDateTime;
     private Instant updatedAt;
     private String notes;
+    private boolean isBillGenerated;
 }

@@ -68,7 +68,7 @@ public class OverviewController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userEmail = authentication.getName();
         log.info("Fetching pending bookings - User: {}", userEmail);
-        OverviewResponse response = overviewService.getBookedServicesByStatus("PENDING");
+        OverviewResponse response = overviewService.getBookedServicesByStatus("CONFIRMED");
         return ResponseEntity.ok(response);
     }
 

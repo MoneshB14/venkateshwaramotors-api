@@ -152,7 +152,7 @@ public class OverviewService {
 
         long totalBookings = bookedServices.size();
         long pendingBookings = bookedServices.stream()
-                .filter(bs -> "PENDING".equalsIgnoreCase(bs.getBookingStatus()))
+                .filter(bs -> "CONFIRMED".equalsIgnoreCase(bs.getBookingStatus()))
                 .count();
         long completedBookings = bookedServices.stream()
                 .filter(bs -> "COMPLETED".equalsIgnoreCase(bs.getBookingStatus()))

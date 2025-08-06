@@ -81,6 +81,7 @@ public class BookingService {
                     .estimatedCost(request.getEstimatedCost())
                     .bookingStatus(savedBooking.getBookingStatus())
                     .notes(request.getNotes())
+                    .isBillGenerated(savedBooking.isBillGenerated())
                     .build();
 
         } catch (Exception e) {
@@ -437,6 +438,7 @@ public class BookingService {
                 .updatedAt(now)
                 .emailSent(false)
                 .createdBy(createdBy)
+                .isBillGenerated(false)
                 .build();
     }
 
@@ -462,6 +464,7 @@ public class BookingService {
                 .bookingDateTime(booking.getCreatedAt())
                 .updatedAt(booking.getUpdatedAt())
                 .notes(booking.getNotes())
+                .isBillGenerated(booking.isBillGenerated())
                 .build();
     }
 

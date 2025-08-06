@@ -4,7 +4,10 @@ import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.d
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.dto.BillResponse;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.dto.BillUpdateRequest;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.entity.Bill;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.entity.Booking;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.repository.BillRepository;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.repository.BookingRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,6 +22,7 @@ import java.util.stream.Collectors;
 public class BillService {
 
     private final BillRepository billRepository;
+    private final BookingRepository bookingRepository;
 
     /**
      * Save a new bill
@@ -45,7 +49,16 @@ public class BillService {
             // Save bill to database
             Bill savedBill = billRepository.save(bill);
 
-            log.info("Bill saved successfully with ID: {} and bill number: {}", 
+            // Update booking with bill generated status
+            Booking booking = bookingRepository.findByBookingId(request.getBookingId())
+                    .orElse(null);
+
+            if (booking != null) {
+                booking.setBillGenerated(true);
+                bookingRepository.save(booking);
+            }
+
+            log.info("Bill saved successfully with ID: {} and bill number: {}",
                     savedBill.getId(), savedBill.getBillNumber());
 
             return BillResponse.success(savedBill, "Bill saved successfully");
@@ -144,9 +157,9 @@ public class BillService {
      */
     private boolean isValidPaymentStatus(String paymentStatus) {
         return "PENDING".equalsIgnoreCase(paymentStatus) ||
-               "PAID".equalsIgnoreCase(paymentStatus) ||
-               "PARTIALLY_PAID".equalsIgnoreCase(paymentStatus) ||
-               "CANCELLED".equalsIgnoreCase(paymentStatus);
+                "PAID".equalsIgnoreCase(paymentStatus) ||
+                "PARTIALLY_PAID".equalsIgnoreCase(paymentStatus) ||
+                "CANCELLED".equalsIgnoreCase(paymentStatus);
     }
 
     /**

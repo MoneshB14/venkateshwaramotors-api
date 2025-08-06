@@ -73,4 +73,7 @@ public class Booking {
 
     @Field("updated_by")
     private String updatedBy;
+
+    @Field("is_bill_generated")
+    private boolean isBillGenerated;
 } 
