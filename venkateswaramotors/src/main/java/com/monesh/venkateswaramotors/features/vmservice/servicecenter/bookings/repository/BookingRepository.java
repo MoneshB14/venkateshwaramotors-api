@@ -27,6 +27,8 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
     @Query("{'vehicle_registration': {$regex: ?0, $options: 'i'}}")
     List<Booking> findByVehicleRegistrationContainingIgnoreCase(String vehicleRegistration);
 
+    List<Booking> findByVehicleRegistration(String vehicleRegistration);
+
     @Query("{'preferred_date': ?0, 'preferred_time': ?1}")
     List<Booking> findByPreferredDateAndPreferredTime(String preferredDate, String preferredTime);
 
