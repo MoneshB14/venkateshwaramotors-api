@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: ${SPRING_APPLICATION_NAME:venkateswaramotors}
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017}
+      database: ${SPRING_DATA_MONGODB_DATABASE:venkateswaramotors}
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      timeout: ${SPRING_DATA_REDIS_TIMEOUT:2000ms}
+
+# Email API Configuration
+email:
+  api:
+    url: ${EMAIL_API_URL:http://localhost:3000}
+    endpoint: ${EMAIL_API_ENDPOINT:/send-email}
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: ${SERVER_SERVLET_CONTEXT_PATH:/}
+
+# Logging Configuration
+logging:
+  level:
+    com.monesh.venkateswaramotors: ${LOGGING_LEVEL_COM_MONESH_VENKATESWARAMOTORS:INFO}
+    org.springframework.security: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY:INFO}
