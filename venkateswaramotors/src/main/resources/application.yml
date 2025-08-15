@@ -3,25 +3,25 @@ spring:
     name: venkateswaramotors
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb+srv://venkateshwaramotorstrl:yf59d2uLzzkiBrZK@cluster0.r741p.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0}
-      database: ${MONGODB_DATABASE:venkateswaramotors}
+      uri: mongodb+srv://venkateshwaramotorstrl:yf59d2uLzzkiBrZK@cluster0.r741p.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+      database: venkateswaramotors
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      timeout: ${REDIS_TIMEOUT:2000ms}
+      host: localhost
+      port: 6379
+      timeout: 2000ms
 
 # Email API Configuration
 email:
   api:
-    url: ${EMAIL_API_URL:https://node-mailer-api-production-e8eb.up.railway.app}
-    endpoint: ${EMAIL_API_ENDPOINT:/send-email}
+    url: https://node-mailer-api-production-e8eb.up.railway.app
+    endpoint: /send-email
 
 # Server Configuration
 server:
-  port: ${PORT:8888}
+  port: 8888
 
 # Logging Configuration
 logging:
   level:
-    com.monesh.venkateswaramotors: ${LOG_LEVEL_APP:DEBUG}
-    org.springframework.security: ${LOG_LEVEL_SECURITY:DEBUG}
+    com.monesh.venkateswaramotors: DEBUG
+    org.springframework.security: DEBUG
