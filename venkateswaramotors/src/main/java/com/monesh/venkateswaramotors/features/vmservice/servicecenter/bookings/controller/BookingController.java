@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/vm/api/service-center/bookings")
+@RequestMapping("/service-center/bookings")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

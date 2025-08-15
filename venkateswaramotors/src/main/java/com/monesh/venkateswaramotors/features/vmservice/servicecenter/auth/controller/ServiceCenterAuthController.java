@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/vm/api/service-center/auth")
+@RequestMapping("/service-center/auth")
 public class ServiceCenterAuthController {
 
     @Autowired

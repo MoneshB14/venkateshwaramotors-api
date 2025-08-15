@@ -19,6 +19,8 @@ email:
 # Server Configuration
 server:
   port: 8888
+  servlet:
+    context-path: /vm/api
 
 # Logging Configuration
 logging:

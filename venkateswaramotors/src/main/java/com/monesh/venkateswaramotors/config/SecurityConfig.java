@@ -44,12 +44,12 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/vm/api/service-center/auth/**").permitAll()
-                        .requestMatchers("/vm/api/global/auth/**").permitAll()
-                        .requestMatchers("/vm/api/website-booking/**").permitAll()
+                        .requestMatchers("/service-center/auth/**").permitAll()
+                        .requestMatchers("/global/auth/**").permitAll()
+                        .requestMatchers("/website-booking/**").permitAll()
                         .requestMatchers("/test-cors").permitAll()
-                        .requestMatchers("/vm/api/service-center/overview/**").authenticated()
-                        .requestMatchers("/vm/api/service-center/user-management/**").authenticated()
+                        .requestMatchers("/service-center/overview/**").authenticated()
+                        .requestMatchers("/service-center/user-management/**").authenticated()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -66,7 +66,8 @@ public class SecurityConfig {
 
         // Allow specific origins instead of wildcard
         configuration.setAllowedOriginPatterns(
-                List.of("http://localhost:9999", "http://localhost:3000", "http://localhost:4200"));
+                List.of("http://localhost:9999", "http://localhost:3000", "http://localhost:4200",
+                        "http://13.60.223.91:8888", "http://13.60.223.91"));
 
         // Allow credentials
         configuration.setAllowCredentials(true);

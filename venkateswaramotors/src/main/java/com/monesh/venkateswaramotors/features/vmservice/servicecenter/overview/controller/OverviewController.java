@@ -10,7 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/vm/api/service-center/overview")
+@RequestMapping("/service-center/overview")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
