@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/global/auth")
+@RequestMapping("/vm/api/global/auth")
 @RequiredArgsConstructor
 @Slf4j
 public class AuthController {

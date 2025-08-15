@@ -1,32 +1,27 @@
 spring:
   application:
-    name: ${SPRING_APPLICATION_NAME}
-  autoconfigure:
-    exclude: ${REDIS_AUTOCONFIGURE_EXCLUDE}
+    name: venkateswaramotors
   data:
     mongodb:
-      uri: ${SPRING_DATA_MONGODB_URI}
-      database: ${SPRING_DATA_MONGODB_DATABASE}
+      uri: ${MONGODB_URI:mongodb+srv://venkateshwaramotorstrl:yf59d2uLzzkiBrZK@cluster0.r741p.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0}
+      database: ${MONGODB_DATABASE:venkateswaramotors}
     redis:
-      host: ${SPRING_DATA_REDIS_HOST}
-      port: ${SPRING_DATA_REDIS_PORT}
-      timeout: ${SPRING_DATA_REDIS_TIMEOUT}
-      password: ${SPRING_DATA_REDIS_PASSWORD}
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: ${REDIS_TIMEOUT:2000ms}
 
 # Email API Configuration
 email:
   api:
-    url: ${EMAIL_API_URL}
-    endpoint: ${EMAIL_API_ENDPOINT}
+    url: ${EMAIL_API_URL:https://node-mailer-api-production-e8eb.up.railway.app}
+    endpoint: ${EMAIL_API_ENDPOINT:/send-email}
 
 # Server Configuration
 server:
-  port: ${SERVER_PORT}
-  servlet:
-    context-path: ${SERVER_SERVLET_CONTEXT_PATH}
+  port: ${PORT:8888}
 
 # Logging Configuration
 logging:
   level:
-    com.monesh.venkateswaramotors: ${LOGGING_LEVEL_COM_MONESH_VENKATESWARAMOTORS}
-    org.springframework.security: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY}
+    com.monesh.venkateswaramotors: ${LOG_LEVEL_APP:DEBUG}
+    org.springframework.security: ${LOG_LEVEL_SECURITY:DEBUG}

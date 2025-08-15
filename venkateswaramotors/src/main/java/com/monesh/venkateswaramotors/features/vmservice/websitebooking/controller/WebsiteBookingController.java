@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/website-booking")
+@RequestMapping("/vm/api/website-booking")
 @RequiredArgsConstructor
 @Slf4j
 public class WebsiteBookingController {

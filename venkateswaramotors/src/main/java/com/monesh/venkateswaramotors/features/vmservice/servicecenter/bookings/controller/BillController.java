@@ -16,7 +16,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/service-center/bookings/bills")
+@RequestMapping("/vm/api/service-center/bookings/bills")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

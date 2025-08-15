@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @RestController
-@RequestMapping("/service-center/inventory")
+@RequestMapping("/vm/api/service-center/inventory")
 public class InventoryController {
 
     @Autowired

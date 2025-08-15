@@ -44,12 +44,12 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/service-center/auth/**").permitAll()
-                        .requestMatchers("/global/auth/**").permitAll()
-                        .requestMatchers("/website-booking/**").permitAll()
+                        .requestMatchers("/vm/api/service-center/auth/**").permitAll()
+                        .requestMatchers("/vm/api/global/auth/**").permitAll()
+                        .requestMatchers("/vm/api/website-booking/**").permitAll()
                         .requestMatchers("/test-cors").permitAll()
-                        .requestMatchers("/service-center/overview/**").authenticated()
-                        .requestMatchers("/service-center/user-management/**").authenticated()
+                        .requestMatchers("/vm/api/service-center/overview/**").authenticated()
+                        .requestMatchers("/vm/api/service-center/user-management/**").authenticated()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
