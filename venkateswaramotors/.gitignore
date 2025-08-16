@@ -30,6 +30,13 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+### Eclipse ###
+.classpath
+.project
+.settings/
+.vscode/
+
+
 ### VS Code ###
 .vscode/
 
