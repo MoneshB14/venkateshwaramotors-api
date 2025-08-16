@@ -67,7 +67,9 @@ public class SecurityConfig {
         // Allow specific origins instead of wildcard
         configuration.setAllowedOriginPatterns(
                 List.of("http://localhost:9999", "http://localhost:3000", "http://localhost:4200",
-                        "http://13.60.223.91:8888", "http://13.60.223.91"));
+                        "http://13.60.223.91:8888", "http://13.60.223.91", "http://localhost:5173",
+                        "https://venkateswaramotors-service.netlify.app",
+                        "https://venkateswaramotors-service.netlify.app/"));
 
         // Allow credentials
         configuration.setAllowCredentials(true);
