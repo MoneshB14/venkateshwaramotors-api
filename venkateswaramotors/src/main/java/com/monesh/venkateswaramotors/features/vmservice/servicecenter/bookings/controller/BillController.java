@@ -3,8 +3,10 @@ package com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.dto.BillRequest;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.dto.BillResponse;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.dto.BillUpdateRequest;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.dto.PdfGenerationRequest;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.entity.Bill;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.service.BillService;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.service.PdfService;
 import com.monesh.venkateswaramotors.global.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping("/service-center/bookings/bills")
@@ -24,6 +28,7 @@ public class BillController {
 
     private final BillService billService;
     private final AuthService authService;
+    private final PdfService pdfService;
 
     /**
      * Save a new bill
@@ -38,7 +43,7 @@ public class BillController {
             createdBy = "authenticated_user"; // You can extract user info from cookie if needed
         }
 
-        log.info("Saving bill for booking ID: {} with bill number: {}", 
+        log.info("Saving bill for booking ID: {} with bill number: {}",
                 request.getBookingId(), request.getBillNumber());
 
         BillResponse response = billService.saveBill(request, createdBy);
@@ -117,4 +122,55 @@ public class BillController {
         List<Bill> bills = billService.getBillsByBookingId(bookingId);
         return ResponseEntity.ok(bills);
     }
+
+    /**
+     * Generate PDF from HTML content
+     */
+    @PostMapping("/generate-pdf")
+    public ResponseEntity<byte[]> generatePdf(
+            @Valid @RequestBody PdfGenerationRequest request,
+            HttpServletRequest httpRequest) {
+
+        try {
+            // Authenticate the request
+            if (!authService.authenticateRequest(httpRequest)) {
+                log.warn("Unauthorized PDF generation request");
+                return ResponseEntity.status(401).build();
+            }
+
+            log.info("Processing PDF generation request");
+
+            // Validate HTML content
+            if (!pdfService.isValidHtml(request.getHtmlContent())) {
+                log.warn("Invalid HTML content provided");
+                return ResponseEntity.badRequest().build();
+            }
+
+            // Generate PDF
+            byte[] pdfBytes;
+            if (request.getCustomCss() != null && !request.getCustomCss().trim().isEmpty()) {
+                pdfBytes = pdfService.convertHtmlToPdfWithStyling(request.getHtmlContent(), request.getCustomCss());
+            } else {
+                pdfBytes = pdfService.convertHtmlToPdf(request.getHtmlContent());
+            }
+
+            // Set response headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment",
+                    request.getFilename() != null ? request.getFilename() : "bill.pdf");
+            headers.setContentLength(pdfBytes.length);
+
+            log.info("PDF generated successfully. Size: {} bytes", pdfBytes.length);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdfBytes);
+
+        } catch (Exception e) {
+            log.error("Error generating PDF", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
 }
