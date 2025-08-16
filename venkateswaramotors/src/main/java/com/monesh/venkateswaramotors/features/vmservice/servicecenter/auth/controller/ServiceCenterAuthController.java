@@ -86,7 +86,8 @@ public class ServiceCenterAuthController {
                             true,
                             user.getEmail(),
                             user.getFirstName(),
-                            user.getLastName()));
+                            user.getLastName(),
+                            user.getRole().name()));
                 } else {
                     return ResponseEntity.badRequest().body(new AuthResponse("User not found", false));
                 }
@@ -148,7 +149,8 @@ public class ServiceCenterAuthController {
                         true,
                         user.getEmail(),
                         user.getFirstName(),
-                        user.getLastName()));
+                        user.getLastName(),
+                        user.getRole().name()));
             } else {
                 return ResponseEntity.ok(new AuthResponse("User is not authenticated", false));
             }

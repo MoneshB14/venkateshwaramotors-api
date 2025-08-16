@@ -12,17 +12,19 @@ public class AuthResponse {
     private String email;
     private String firstName;
     private String lastName;
+    private String role;
 
     public AuthResponse(String message, boolean success) {
         this.message = message;
         this.success = success;
     }
 
-    public AuthResponse(String message, boolean success, String email, String firstName, String lastName) {
+    public AuthResponse(String message, boolean success, String email, String firstName, String lastName, String role) {
         this.message = message;
         this.success = success;
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.role = role;
     }
 }
