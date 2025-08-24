@@ -32,11 +32,11 @@ public class EmailService {
         @Value("${email.api.endpoint:/send-email}")
         private String emailApiEndpoint;
 
-            @Value("${email.api.attachments.endpoint:/send-email-with-attachments}")
-    private String emailWithAttachmentsApiEndpoint;
+        @Value("${email.api.attachments.endpoint:/send-email-with-attachments}")
+        private String emailWithAttachmentsApiEndpoint;
 
-    @Value("${email.api.files.endpoint:/send-email-with-files}")
-    private String emailWithFilesApiEndpoint;
+        @Value("${email.api.files.endpoint:/send-email-with-files}")
+        private String emailWithFilesApiEndpoint;
 
         /**
          * Send email using the Node.js mailer API
@@ -96,69 +96,71 @@ public class EmailService {
                 log.info("Sending email with attachments to: {}", emailWithAttachmentsRequest.getTo());
 
                 return webClient.post()
-                                // .uri(emailApiUrl + emailWithAttachmentsApiEndpoint)
-                                .uri("http://localhost:3000/send-email-with-attachments")
+                                .uri(emailApiUrl + emailWithAttachmentsApiEndpoint)
+                                // .uri("http://localhost:3000/send-email-with-attachments")
                                 .bodyValue(emailWithAttachmentsRequest)
                                 .retrieve()
                                 .bodyToMono(EmailResponse.class)
                                 .doOnSuccess(response -> log.info("Email with attachments sent successfully to: {}",
                                                 emailWithAttachmentsRequest.getTo()))
                                 .doOnError(error -> log.error("Failed to send email with attachments to: {}, Error: {}",
-                                                                        emailWithAttachmentsRequest.getTo(), error.getMessage()));
-    }
-
-    /**
-     * Send email with file uploads using multipart/form-data
-     * 
-     * @param to Recipient email address
-     * @param subject Email subject
-     * @param htmlContent Email HTML content
-     * @param fileName Name of the file to attach
-     * @param fileContent Byte array content of the file
-     * @param contentType MIME type of the file
-     * @return EmailFileUploadResponse with success status and file info
-     */
-    public Mono<EmailFileUploadResponse> sendEmailWithFileUpload(String to, String subject, String htmlContent, 
-            String fileName, byte[] fileContent, String contentType) {
-        
-        log.info("Sending email with file upload to: {}, file: {}", to, fileName);
-
-        try {
-            // Create multipart form data
-            MultiValueMap<String, Object> formData = new LinkedMultiValueMap<>();
-            formData.add("to", to);
-            formData.add("subject", subject);
-            formData.add("htmlContent", htmlContent);
-            
-            // Create file resource
-            ByteArrayResource fileResource = new ByteArrayResource(fileContent) {
-                @Override
-                public String getFilename() {
-                    return fileName;
-                }
-            };
-            
-            formData.add("files", fileResource);
-
-            return webClient.post()
-                    //.uri(emailApiUrl + emailWithFilesApiEndpoint)
-                    .uri("http://localhost:3000/send-email-with-files")
-                    .contentType(MediaType.MULTIPART_FORM_DATA)
-                    .body(BodyInserters.fromMultipartData(formData))
-                    .retrieve()
-                    .bodyToMono(EmailFileUploadResponse.class)
-                    .doOnSuccess(response -> log.info("Email with file upload sent successfully to: {}, files count: {}", 
-                            to, response.getFilesCount()))
-                    .doOnError(error -> log.error("Failed to send email with file upload to: {}, Error: {}", 
-                            to, error.getMessage()));
-
-        } catch (Exception e) {
-            log.error("Error preparing email with file upload to: {}", to, e);
-            return Mono.just(EmailFileUploadResponse.builder()
-                    .success(false)
-                    .message("Failed to prepare email: " + e.getMessage())
-                    .build());
+                                                emailWithAttachmentsRequest.getTo(), error.getMessage()));
         }
-    }
+
+        /**
+         * Send email with file uploads using multipart/form-data
+         * 
+         * @param to          Recipient email address
+         * @param subject     Email subject
+         * @param htmlContent Email HTML content
+         * @param fileName    Name of the file to attach
+         * @param fileContent Byte array content of the file
+         * @param contentType MIME type of the file
+         * @return EmailFileUploadResponse with success status and file info
+         */
+        public Mono<EmailFileUploadResponse> sendEmailWithFileUpload(String to, String subject, String htmlContent,
+                        String fileName, byte[] fileContent, String contentType) {
+
+                log.info("Sending email with file upload to: {}, file: {}", to, fileName);
+
+                try {
+                        // Create multipart form data
+                        MultiValueMap<String, Object> formData = new LinkedMultiValueMap<>();
+                        formData.add("to", to);
+                        formData.add("subject", subject);
+                        formData.add("htmlContent", htmlContent);
+
+                        // Create file resource
+                        ByteArrayResource fileResource = new ByteArrayResource(fileContent) {
+                                @Override
+                                public String getFilename() {
+                                        return fileName;
+                                }
+                        };
+
+                        formData.add("files", fileResource);
+
+                        return webClient.post()
+                                        .uri(emailApiUrl + emailWithFilesApiEndpoint)
+                                        // .uri("http://localhost:3000/send-email-with-files")
+                                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                                        .body(BodyInserters.fromMultipartData(formData))
+                                        .retrieve()
+                                        .bodyToMono(EmailFileUploadResponse.class)
+                                        .doOnSuccess(response -> log.info(
+                                                        "Email with file upload sent successfully to: {}, files count: {}",
+                                                        to, response.getFilesCount()))
+                                        .doOnError(error -> log.error(
+                                                        "Failed to send email with file upload to: {}, Error: {}",
+                                                        to, error.getMessage()));
+
+                } catch (Exception e) {
+                        log.error("Error preparing email with file upload to: {}", to, e);
+                        return Mono.just(EmailFileUploadResponse.builder()
+                                        .success(false)
+                                        .message("Failed to prepare email: " + e.getMessage())
+                                        .build());
+                }
+        }
 
 }
