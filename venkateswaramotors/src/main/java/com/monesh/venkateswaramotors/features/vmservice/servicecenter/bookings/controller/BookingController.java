@@ -2,6 +2,7 @@ package com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.
 
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.dto.*;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.service.BookingService;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.service.BikeService;
 import com.monesh.venkateswaramotors.global.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ import jakarta.validation.Valid;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final BikeService bikeService;
     private final AuthService authService;
 
     /**
@@ -206,6 +208,44 @@ public class BookingController {
         log.info("Getting bookings for technician: {}", technician);
 
         BookingListResponse response = bookingService.getBookingsByTechnician(technician);
+
+        if (response.isSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    /**
+     * Get bikes list filtered by manufacturer
+     */
+    @GetMapping("/bikes-list")
+    public ResponseEntity<BikeListResponse> getBikesList(@RequestParam(required = false) String manufacturer) {
+        log.info("Getting bikes list with manufacturer filter: {}", manufacturer);
+
+        BikeListResponse response;
+        
+        if (manufacturer != null && !manufacturer.trim().isEmpty()) {
+            response = bikeService.getBikesByManufacturer(manufacturer);
+        } else {
+            response = bikeService.getAllBikes();
+        }
+
+        if (response.isSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    /**
+     * Get bike name suggestions for autocomplete
+     */
+    @GetMapping("/bikes-suggestions")
+    public ResponseEntity<BikeSuggestionResponse> getBikeSuggestions(@RequestParam String query) {
+        log.info("Getting bike suggestions for query: {}", query);
+
+        BikeSuggestionResponse response = bikeService.getBikeSuggestions(query);
 
         if (response.isSuccess()) {
             return ResponseEntity.ok(response);

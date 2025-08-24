@@ -4,10 +4,13 @@ import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.d
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.dto.BillResponse;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.dto.BillUpdateRequest;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.dto.PdfGenerationRequest;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.dto.EmailWithPdfRequest;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.entity.Bill;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.service.BillService;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.service.PdfService;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.service.EmailPdfService;
 import com.monesh.venkateswaramotors.global.service.AuthService;
+import com.monesh.venkateswaramotors.global.dto.EmailResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +32,7 @@ public class BillController {
     private final BillService billService;
     private final AuthService authService;
     private final PdfService pdfService;
+    private final EmailPdfService emailPdfService;
 
     /**
      * Save a new bill
@@ -170,6 +174,48 @@ public class BillController {
         } catch (Exception e) {
             log.error("Error generating PDF", e);
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Send email with PDF attachment
+     */
+    @PostMapping("/send-email-with-pdf")
+    public ResponseEntity<EmailResponse> sendEmailWithPdf(
+            @Valid @RequestBody EmailWithPdfRequest request,
+            HttpServletRequest httpRequest) {
+
+        try {
+            // Authenticate the request
+            if (!authService.authenticateRequest(httpRequest)) {
+                log.warn("Unauthorized email sending request");
+                return ResponseEntity.status(401).build();
+            }
+
+            // Validate request
+            if (!emailPdfService.isValidEmailRequest(request)) {
+                log.warn("Invalid email request received");
+                return ResponseEntity.badRequest().build();
+            }
+
+            // Process email with PDF through service
+            EmailResponse emailResponse = emailPdfService.sendEmailWithPdf(request).block();
+
+            if (emailResponse != null && emailResponse.isSuccess()) {
+                return ResponseEntity.ok(emailResponse);
+            } else {
+                return ResponseEntity.internalServerError().body(emailResponse);
+            }
+
+        } catch (Exception e) {
+            log.error("Error in email with PDF endpoint for bill ID: {}", request.getBillId(), e);
+
+            EmailResponse errorResponse = EmailResponse.builder()
+                    .success(false)
+                    .message("Failed to process email request: " + e.getMessage())
+                    .build();
+
+            return ResponseEntity.internalServerError().body(errorResponse);
         }
     }
 
