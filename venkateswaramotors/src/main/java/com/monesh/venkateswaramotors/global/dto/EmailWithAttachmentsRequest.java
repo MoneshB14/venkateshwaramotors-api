@@ -16,17 +16,17 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EmailWithAttachmentsRequest {
-    
+
     @NotBlank(message = "Recipient email is required")
     @Email(message = "Invalid email format")
     private String to;
-    
+
     @NotBlank(message = "Subject is required")
     private String subject;
-    
+
     @NotBlank(message = "HTML content is required")
     private String htmlContent;
-    
+
     @NotEmpty(message = "At least one attachment is required")
     @Valid
     private List<EmailAttachment> attachments;
