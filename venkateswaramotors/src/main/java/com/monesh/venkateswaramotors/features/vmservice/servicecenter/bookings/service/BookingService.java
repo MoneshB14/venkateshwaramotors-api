@@ -4,6 +4,8 @@ import com.monesh.venkateswaramotors.constants.EmailTemplates;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.dto.*;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.entity.Booking;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.repository.BookingRepository;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.notifications.entity.Notification;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.notifications.service.NotificationService;
 import com.monesh.venkateswaramotors.global.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +32,7 @@ public class BookingService {
 
     private final EmailService emailService;
     private final BookingRepository bookingRepository;
+    private final NotificationService notificationService;
 
     /**
      * Create a new booking
@@ -66,6 +70,19 @@ public class BookingService {
             // Send email notification
             sendBookingConfirmationEmail(request, bookingId);
 
+            // Create notification for booking creation
+            notificationService.createNotificationWithReferenceAndCustomer(
+                    "monesh141001@gmail.com", // Admin email
+                    request.getName(),
+                    "New Booking Created",
+                    String.format("New booking created for %s - %s (%s)", 
+                            request.getName(), request.getVehicleModel(), bookingId),
+                    Notification.NotificationType.BOOKING_CREATED,
+                    bookingId,
+                    "BOOKING",
+                    Notification.NotificationPriority.HIGH
+            );
+
             // Create response
             return BookingResponse.builder()
                     .bookingId(bookingId)
@@ -91,6 +108,65 @@ public class BookingService {
                     .message("An error occurred while processing your booking. Please try again.")
                     .build();
         }
+    }
+
+    /**
+     * Create multiple bookings in bulk
+     */
+    public BulkBookingResponse createBulkBookings(List<BookingRequest> requests, String createdBy) {
+        log.info("Processing bulk booking request for {} customers", requests.size());
+        
+        List<BookingResponse> successfulBookings = new ArrayList<>();
+        List<BulkBookingResponse.BulkBookingFailure> failedBookings = new ArrayList<>();
+        
+        for (int i = 0; i < requests.size(); i++) {
+            BookingRequest request = requests.get(i);
+            try {
+                BookingResponse response = createBooking(request, createdBy);
+                if (response.isSuccess()) {
+                    successfulBookings.add(response);
+                    log.info("Successfully created booking {} for customer: {}", i + 1, request.getName());
+                } else {
+                    failedBookings.add(BulkBookingResponse.BulkBookingFailure.builder()
+                            .index(i)
+                            .request(request)
+                            .errorMessage(response.getMessage())
+                            .reason("Booking creation failed")
+                            .build());
+                    log.warn("Failed to create booking {} for customer: {} - {}", i + 1, request.getName(), response.getMessage());
+                }
+            } catch (Exception e) {
+                failedBookings.add(BulkBookingResponse.BulkBookingFailure.builder()
+                        .index(i)
+                        .request(request)
+                        .errorMessage(e.getMessage())
+                        .reason("Unexpected error during booking creation")
+                        .build());
+                log.error("Exception occurred while creating booking {} for customer: {} - {}", i + 1, request.getName(), e.getMessage());
+            }
+        }
+        
+        boolean overallSuccess = failedBookings.isEmpty();
+        String message;
+        
+        if (overallSuccess) {
+            message = String.format("All %d bookings created successfully!", requests.size());
+        } else if (successfulBookings.isEmpty()) {
+            message = String.format("Failed to create any of the %d bookings", requests.size());
+        } else {
+            message = String.format("Created %d out of %d bookings successfully", 
+                    successfulBookings.size(), requests.size());
+        }
+        
+        return BulkBookingResponse.builder()
+                .success(overallSuccess)
+                .message(message)
+                .totalRequested(requests.size())
+                .successfulBookings(successfulBookings.size())
+                .failedBookings(failedBookings.size())
+                .successfulBookingsList(successfulBookings)
+                .failedBookingsList(failedBookings)
+                .build();
     }
 
     /**
@@ -154,6 +230,42 @@ public class BookingService {
                         Booking updatedBooking = bookingRepository.save(booking);
                         log.info("Booking updated successfully: {}", bookingId);
 
+                        // Create notification for booking update
+                        String notificationMessage = String.format("Booking %s updated", bookingId);
+                        if (request.getBookingStatus() != null && "COMPLETED".equals(request.getBookingStatus())) {
+                            notificationMessage = String.format("Booking %s marked as completed", bookingId);
+                            notificationService.createNotificationWithReference(
+                                    "monesh141001@gmail.com",
+                                    "Booking Completed",
+                                    notificationMessage,
+                                    Notification.NotificationType.BOOKING_COMPLETED,
+                                    bookingId,
+                                    "BOOKING",
+                                    Notification.NotificationPriority.MEDIUM
+                            );
+                        } else if (request.getBookingStatus() != null && "CANCELLED".equals(request.getBookingStatus())) {
+                            notificationMessage = String.format("Booking %s cancelled", bookingId);
+                            notificationService.createNotificationWithReference(
+                                    "monesh141001@gmail.com",
+                                    "Booking Cancelled",
+                                    notificationMessage,
+                                    Notification.NotificationType.BOOKING_CANCELLED,
+                                    bookingId,
+                                    "BOOKING",
+                                    Notification.NotificationPriority.MEDIUM
+                            );
+                        } else {
+                            notificationService.createNotificationWithReference(
+                                    "monesh141001@gmail.com",
+                                    "Booking Updated",
+                                    notificationMessage,
+                                    Notification.NotificationType.BOOKING_UPDATED,
+                                    bookingId,
+                                    "BOOKING",
+                                    Notification.NotificationPriority.MEDIUM
+                            );
+                        }
+
                         return mapToBookingResponse(updatedBooking);
                     })
                     .orElse(BookingResponse.builder()
@@ -181,6 +293,18 @@ public class BookingService {
                     .map(booking -> {
                         bookingRepository.delete(booking);
                         log.info("Booking deleted successfully: {}", bookingId);
+
+                        // Create notification for booking deletion
+                        notificationService.createNotificationWithReference(
+                                "monesh141001@gmail.com",
+                                "Booking Deleted",
+                                String.format("Booking %s has been deleted", bookingId),
+                                Notification.NotificationType.BOOKING_CANCELLED,
+                                bookingId,
+                                "BOOKING",
+                                Notification.NotificationPriority.LOW
+                        );
+
                         return BookingResponse.builder()
                                 .success(true)
                                 .message("Booking deleted successfully")

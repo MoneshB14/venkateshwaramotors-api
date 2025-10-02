@@ -19,4 +19,6 @@ public interface BillRepository extends MongoRepository<Bill, String> {
     List<Bill> findByCreatedBy(String createdBy);
 
     boolean existsByBillNumber(String billNumber);
+
+    List<Bill> findByBookingIdIn(List<String> bookingIds);
 }

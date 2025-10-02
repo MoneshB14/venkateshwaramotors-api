@@ -3,6 +3,8 @@ package com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.serv
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.dto.SignupRequest;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.entity.User;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.repository.UserRepository;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.notifications.entity.Notification;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.notifications.service.NotificationService;
 import com.monesh.venkateswaramotors.utils.OtpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,6 +23,9 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private OtpService otpService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -45,7 +50,15 @@ public class UserService implements UserDetailsService {
         user.setRole(User.Role.ADMIN);
         user.onCreate();
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        // Create welcome notification
+        notificationService.createSimpleNotification(
+                savedUser.getEmail(),
+                "Welcome to Venkateswara Motors!",
+                "Your account has been successfully created. Welcome aboard!",
+                Notification.NotificationType.SIGNUP);
+
         return true;
     }
 
@@ -93,7 +106,7 @@ public class UserService implements UserDetailsService {
             // Verify user exists in database
             return userRepository.findByEmail(userEmail);
         }
-        
+
         return Optional.empty();
     }
 }

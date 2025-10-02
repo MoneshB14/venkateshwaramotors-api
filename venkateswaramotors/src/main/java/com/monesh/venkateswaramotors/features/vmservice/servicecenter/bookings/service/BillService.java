@@ -7,6 +7,8 @@ import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.e
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.entity.Booking;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.repository.BillRepository;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.bookings.repository.BookingRepository;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.notifications.entity.Notification;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.notifications.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,7 @@ public class BillService {
 
     private final BillRepository billRepository;
     private final BookingRepository bookingRepository;
+    private final NotificationService notificationService;
 
     /**
      * Save a new bill
@@ -60,6 +63,18 @@ public class BillService {
 
             log.info("Bill saved successfully with ID: {} and bill number: {}",
                     savedBill.getId(), savedBill.getBillNumber());
+
+            // Create notification for bill generation
+            notificationService.createNotificationWithReferenceAndCustomer(
+                    "monesh141001@gmail.com",
+                    booking.getCustomerName(),
+                    "Bill Generated",
+                    String.format("Bill %s generated for customer %s. Total: ₹%.2f",
+                            savedBill.getBillNumber(), booking.getCustomerName(), savedBill.getTotal()),
+                    Notification.NotificationType.BILL_GENERATED,
+                    savedBill.getBillNumber(),
+                    "BILL",
+                    Notification.NotificationPriority.HIGH);
 
             return BillResponse.success(savedBill, "Bill saved successfully");
 

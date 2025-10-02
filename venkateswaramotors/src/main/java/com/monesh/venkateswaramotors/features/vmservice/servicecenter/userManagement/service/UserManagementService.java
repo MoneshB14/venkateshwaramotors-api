@@ -2,6 +2,8 @@ package com.monesh.venkateswaramotors.features.vmservice.servicecenter.userManag
 
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.entity.User;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.auth.repository.UserRepository;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.notifications.entity.Notification;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.notifications.service.NotificationService;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.userManagement.dto.CreateUserRequest;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.userManagement.dto.CreateUserResponse;
 import com.monesh.venkateswaramotors.features.vmservice.servicecenter.userManagement.dto.GenericResponse;
@@ -23,6 +25,9 @@ public class UserManagementService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     /**
      * Create a new user with role-based access
@@ -46,7 +51,30 @@ public class UserManagementService {
         }
 
         User user = request.toUser();
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        // Create notification for new user creation
+        notificationService.createNotificationWithReferenceAndCustomer(
+                "monesh141001@gmail.com",
+                savedUser.getFirstName() + " " + savedUser.getLastName(),
+                "New User Created",
+                String.format("New user %s %s (%s) created with role %s",
+                        savedUser.getFirstName(), savedUser.getLastName(),
+                        savedUser.getEmail(), savedUser.getRole()),
+                Notification.NotificationType.USER_CREATED,
+                savedUser.getId(),
+                "USER",
+                Notification.NotificationPriority.MEDIUM
+        );
+
+        // Also notify the new user
+        notificationService.createSimpleNotification(
+                savedUser.getEmail(),
+                "Welcome to Venkateswara Motors",
+                String.format("Your account has been created with role: %s", savedUser.getRole()),
+                Notification.NotificationType.USER_CREATED
+        );
+
         return new CreateUserResponse("User created successfully", true);
     }
 

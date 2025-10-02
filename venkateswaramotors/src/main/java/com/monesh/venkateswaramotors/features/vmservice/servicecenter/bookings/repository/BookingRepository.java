@@ -45,4 +45,9 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
     List<Booking> findByServiceType(String serviceType);
 
     List<Booking> findByPreferredDateBetween(String fromDate, String toDate);
+
+    @Query("{'preferred_date': ?0, 'booking_status': ?1}")
+    List<Booking> findByPreferredDateAndBookingStatus(String preferredDate, String bookingStatus);
+
+    long countByBookingStatus(String bookingStatus);
 } 

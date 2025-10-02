@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import java.util.List;
 
 @RestController
 @RequestMapping("/service-center/bookings")
@@ -39,6 +42,30 @@ public class BookingController {
         log.info("Creating booking for customer: {}", request.getName());
 
         BookingResponse response = bookingService.createBooking(request, createdBy);
+
+        if (response.isSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    /**
+     * Create multiple bookings in bulk
+     */
+    @PostMapping("/bulk-bookings")
+    public ResponseEntity<BulkBookingResponse> createBulkBookings(
+            @Valid @RequestBody List<BookingRequest> requests,
+            HttpServletRequest httpRequest) {
+
+        log.info("Creating bulk bookings for {} customers", requests.size());
+
+        String createdBy = "system"; // Default value
+        if (authService.authenticateRequest(httpRequest)) {
+            createdBy = "authenticated_user"; // You can extract user info from cookie if needed
+        }
+
+        BulkBookingResponse response = bookingService.createBulkBookings(requests, createdBy);
 
         if (response.isSuccess()) {
             return ResponseEntity.ok(response);
@@ -224,7 +251,7 @@ public class BookingController {
         log.info("Getting bikes list with manufacturer filter: {}", manufacturer);
 
         BikeListResponse response;
-        
+
         if (manufacturer != null && !manufacturer.trim().isEmpty()) {
             response = bikeService.getBikesByManufacturer(manufacturer);
         } else {

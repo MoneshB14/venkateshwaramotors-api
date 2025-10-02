@@ -6,6 +6,8 @@ import com.monesh.venkateswaramotors.features.vmservice.websitebooking.dto.Servi
 import com.monesh.venkateswaramotors.features.vmservice.websitebooking.dto.ServiceBookingResponse;
 import com.monesh.venkateswaramotors.features.vmservice.websitebooking.entity.BookedService;
 import com.monesh.venkateswaramotors.features.vmservice.websitebooking.repository.BookedServiceRepository;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.notifications.entity.Notification;
+import com.monesh.venkateswaramotors.features.vmservice.servicecenter.notifications.service.NotificationService;
 import com.monesh.venkateswaramotors.global.service.AuthService;
 import com.monesh.venkateswaramotors.global.service.EmailService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ public class WebsiteBookingService {
     private final AuthService authService;
     private final EmailService emailService;
     private final BookedServiceRepository bookedServiceRepository;
+    private final NotificationService notificationService;
 
     /**
      * Book a service with data validation, database storage, and email notification
@@ -58,6 +61,19 @@ public class WebsiteBookingService {
 
             // Step 4: Send email notification
             sendBookingConfirmationEmail(request, bookingId);
+
+            // Step 4.5: Create notification for website booking
+            notificationService.createNotificationWithReferenceAndCustomer(
+                    "monesh141001@gmail.com",
+                    request.getName(),
+                    "New Website Booking",
+                    String.format("New website booking from %s - %s (%s)",
+                            request.getName(), request.getVehicleModel(), bookingId),
+                    Notification.NotificationType.BOOKING_CREATED,
+                    bookingId,
+                    "WEBSITE_BOOKING",
+                    Notification.NotificationPriority.HIGH
+            );
 
             // Step 5: Create response
             return ServiceBookingResponse.builder()
